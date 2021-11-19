@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  db:
+    image: mongo:latest
+    container_name: mongo
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD
+    volumes:
+      - dbdata:/data/db
+    networks:
+      - web_default
+
+  mongo-express:
+    image: mongo-express
+    container_name: db-express
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
+      - ME_CONFIG_BASICAUTH_USERNAME=$WEB_USER
+      - ME_CONFIG_BASICAUTH_PASSWORD=$WEB_PASS
+      - ME_CONFIG_MONGODB_URL=mongodb://$MONGO_USERNAME:$MONGO_PASSWORD@mongo:$MONGO_PORT/$MONGO_DB
+    depends_on:
+      - db
+    ports:
+      - "8081:8081"
+    networks:
+      - web_default
+
+volumes:
+  dbdata:
+
+networks:
+  web_default:
+    driver: bridge
